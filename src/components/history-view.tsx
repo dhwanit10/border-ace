@@ -57,6 +57,10 @@ export function HistoryView({
   const [rows, setRows] = useState<HistoryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
+  const [fType, setFType] = useState("all");
+  const [fStatus, setFStatus] = useState("all");
+  const [fSystem, setFSystem] = useState("all");
+  const [fOfficer, setFOfficer] = useState("all");
   const [active, setActive] = useState<HistoryRow | null>(null);
   const [docImg, setDocImg] = useState<string | null>(null);
   const [personImg, setPersonImg] = useState<string | null>(null);
@@ -74,11 +78,35 @@ export function HistoryView({
 
   useEffect(load, [officerId]);
 
+  const uniq = (vals: Array<string | null | undefined>) =>
+    Array.from(new Set(vals.filter((v): v is string => !!v))).sort();
+
+  const typeOpts = useMemo(() => uniq(rows.map((r) => r.document?.doc_type)), [rows]);
+  const statusOpts = useMemo(() => uniq(rows.map((r) => r.risks?.[0]?.status)), [rows]);
+  const systemOpts = useMemo(() => uniq(rows.map((r) => r.system?.system_name)), [rows]);
+  const officerOpts = useMemo(() => uniq(rows.map((r) => r.officer?.full_name)), [rows]);
+
+  const resetFilters = () => {
+    setQ("");
+    setFType("all");
+    setFStatus("all");
+    setFSystem("all");
+    setFOfficer("all");
+  };
+
+  const activeFilters =
+    (q.trim() ? 1 : 0) +
+    [fType, fStatus, fSystem, fOfficer].filter((v) => v !== "all").length;
+
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
-    if (!term) return rows;
-    return rows.filter((r) =>
-      [
+    return rows.filter((r) => {
+      if (fType !== "all" && r.document?.doc_type !== fType) return false;
+      if (fStatus !== "all" && (r.risks?.[0]?.status ?? "") !== fStatus) return false;
+      if (fSystem !== "all" && r.system?.system_name !== fSystem) return false;
+      if (fOfficer !== "all" && r.officer?.full_name !== fOfficer) return false;
+      if (!term) return true;
+      return [
         r.document?.doc_number,
         r.document?.doc_type,
         r.document?.full_name,
@@ -90,9 +118,10 @@ export function HistoryView({
         r.date_time_recorded,
       ]
         .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(term)),
-    );
-  }, [rows, q]);
+        .some((v) => String(v).toLowerCase().includes(term));
+    });
+  }, [rows, q, fType, fStatus, fSystem, fOfficer]);
+
 
   const open = async (row: HistoryRow) => {
     setActive(row);
