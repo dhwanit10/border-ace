@@ -204,6 +204,28 @@ export function HistoryView({
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3">
+        <span className="mr-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          Filters
+        </span>
+        <FilterSelect label="Types" value={fType} onChange={setFType} options={typeOpts} />
+        <FilterSelect label="Statuses" value={fStatus} onChange={setFStatus} options={statusOpts} />
+        <FilterSelect label="Systems" value={fSystem} onChange={setFSystem} options={systemOpts} />
+        {showOfficer && (
+          <FilterSelect
+            label="Officers"
+            value={fOfficer}
+            onChange={setFOfficer}
+            options={officerOpts}
+          />
+        )}
+        {activeFilters > 0 && (
+          <Button variant="ghost" size="sm" onClick={resetFilters}>
+            <X className="mr-1 h-3.5 w-3.5" /> Clear ({activeFilters})
+          </Button>
+        )}
+      </div>
+
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         <Table>
           <TableHeader>
