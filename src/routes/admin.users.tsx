@@ -108,13 +108,29 @@ function AdminUsers() {
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
-    if (!term) return users;
-    return users.filter((u) =>
-      [u.username, u.full_name, u.email, u.phone, u.user_type, u.status]
+    return users.filter((u) => {
+      if (fRole !== "all" && (u.user_type ?? "") !== fRole) return false;
+      if (fStatus !== "all" && (u.status ?? "") !== fStatus) return false;
+      if (fBio !== "all" && (u.has_face_image ? "enrolled" : "missing") !== fBio) return false;
+      if (!term) return true;
+      return [u.username, u.full_name, u.email, u.phone, u.user_type, u.status]
         .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(term)),
-    );
-  }, [users, q]);
+        .some((v) => String(v).toLowerCase().includes(term));
+    });
+  }, [users, q, fRole, fStatus, fBio]);
+
+  const roleOpts = useMemo(
+    () => Array.from(new Set(users.map((u) => u.user_type).filter(Boolean))).sort(),
+    [users],
+  );
+  const statusOpts = useMemo(
+    () => Array.from(new Set(users.map((u) => u.status).filter(Boolean))).sort(),
+    [users],
+  );
+
+  const activeFilters =
+    (q.trim() ? 1 : 0) + [fRole, fStatus, fBio].filter((v) => v !== "all").length;
+
 
   const open = async (u: UserItem) => {
     setActive(u);
