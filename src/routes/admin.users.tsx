@@ -87,6 +87,9 @@ function AdminUsers() {
   const [users, setUsers] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
+  const [fRole, setFRole] = useState("all");
+  const [fStatus, setFStatus] = useState("all");
+  const [fBio, setFBio] = useState("all");
   const [active, setActive] = useState<UserItem | null>(null);
   const [faceUrl, setFaceUrl] = useState<string | null>(null);
   const [faceLoading, setFaceLoading] = useState(false);
