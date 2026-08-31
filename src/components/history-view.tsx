@@ -1,4 +1,4 @@
-import { Eye, Loader2, RefreshCw, Search } from "lucide-react";
+import { Eye, Loader2, RefreshCw, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -6,6 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -15,6 +22,35 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { apiGet, fetchImageUrl, type HistoryRow } from "@/lib/api";
+
+export function FilterSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+}) {
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className="w-[170px] capitalize" aria-label={label}>
+        <SelectValue placeholder={label} />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">All {label.toLowerCase()}</SelectItem>
+        {options.map((o) => (
+          <SelectItem key={o} value={o} className="capitalize">
+            {o.replace(/_/g, " ")}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 
 export function StatusBadge({ status }: { status: string }) {
   const s = (status ?? "").toLowerCase();
@@ -57,6 +93,10 @@ export function HistoryView({
   const [rows, setRows] = useState<HistoryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
+  const [fType, setFType] = useState("all");
+  const [fStatus, setFStatus] = useState("all");
+  const [fSystem, setFSystem] = useState("all");
+  const [fOfficer, setFOfficer] = useState("all");
   const [active, setActive] = useState<HistoryRow | null>(null);
   const [docImg, setDocImg] = useState<string | null>(null);
   const [personImg, setPersonImg] = useState<string | null>(null);
@@ -74,11 +114,35 @@ export function HistoryView({
 
   useEffect(load, [officerId]);
 
+  const uniq = (vals: Array<string | null | undefined>) =>
+    Array.from(new Set(vals.filter((v): v is string => !!v))).sort();
+
+  const typeOpts = useMemo(() => uniq(rows.map((r) => r.document?.doc_type)), [rows]);
+  const statusOpts = useMemo(() => uniq(rows.map((r) => r.risks?.[0]?.status)), [rows]);
+  const systemOpts = useMemo(() => uniq(rows.map((r) => r.system?.system_name)), [rows]);
+  const officerOpts = useMemo(() => uniq(rows.map((r) => r.officer?.full_name)), [rows]);
+
+  const resetFilters = () => {
+    setQ("");
+    setFType("all");
+    setFStatus("all");
+    setFSystem("all");
+    setFOfficer("all");
+  };
+
+  const activeFilters =
+    (q.trim() ? 1 : 0) +
+    [fType, fStatus, fSystem, fOfficer].filter((v) => v !== "all").length;
+
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
-    if (!term) return rows;
-    return rows.filter((r) =>
-      [
+    return rows.filter((r) => {
+      if (fType !== "all" && r.document?.doc_type !== fType) return false;
+      if (fStatus !== "all" && (r.risks?.[0]?.status ?? "") !== fStatus) return false;
+      if (fSystem !== "all" && r.system?.system_name !== fSystem) return false;
+      if (fOfficer !== "all" && r.officer?.full_name !== fOfficer) return false;
+      if (!term) return true;
+      return [
         r.document?.doc_number,
         r.document?.doc_type,
         r.document?.full_name,
@@ -90,9 +154,10 @@ export function HistoryView({
         r.date_time_recorded,
       ]
         .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(term)),
-    );
-  }, [rows, q]);
+        .some((v) => String(v).toLowerCase().includes(term));
+    });
+  }, [rows, q, fType, fStatus, fSystem, fOfficer]);
+
 
   const open = async (row: HistoryRow) => {
     setActive(row);
@@ -137,6 +202,28 @@ export function HistoryView({
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3">
+        <span className="mr-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          Filters
+        </span>
+        <FilterSelect label="Types" value={fType} onChange={setFType} options={typeOpts} />
+        <FilterSelect label="Statuses" value={fStatus} onChange={setFStatus} options={statusOpts} />
+        <FilterSelect label="Systems" value={fSystem} onChange={setFSystem} options={systemOpts} />
+        {showOfficer && (
+          <FilterSelect
+            label="Officers"
+            value={fOfficer}
+            onChange={setFOfficer}
+            options={officerOpts}
+          />
+        )}
+        {activeFilters > 0 && (
+          <Button variant="ghost" size="sm" onClick={resetFilters}>
+            <X className="mr-1 h-3.5 w-3.5" /> Clear ({activeFilters})
+          </Button>
+        )}
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-card">

@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Eye, Loader2, Plus, RefreshCw, Search, UserRound } from "lucide-react";
+import { Eye, Loader2, Plus, RefreshCw, Search, UserRound, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { CameraCapture } from "@/components/camera-capture";
+import { FilterSelect } from "@/components/history-view";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -87,6 +88,9 @@ function AdminUsers() {
   const [users, setUsers] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
+  const [fRole, setFRole] = useState("all");
+  const [fStatus, setFStatus] = useState("all");
+  const [fBio, setFBio] = useState("all");
   const [active, setActive] = useState<UserItem | null>(null);
   const [faceUrl, setFaceUrl] = useState<string | null>(null);
   const [faceLoading, setFaceLoading] = useState(false);
@@ -108,13 +112,29 @@ function AdminUsers() {
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
-    if (!term) return users;
-    return users.filter((u) =>
-      [u.username, u.full_name, u.email, u.phone, u.user_type, u.status]
+    return users.filter((u) => {
+      if (fRole !== "all" && (u.user_type ?? "") !== fRole) return false;
+      if (fStatus !== "all" && (u.status ?? "") !== fStatus) return false;
+      if (fBio !== "all" && (u.has_face_image ? "enrolled" : "missing") !== fBio) return false;
+      if (!term) return true;
+      return [u.username, u.full_name, u.email, u.phone, u.user_type, u.status]
         .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(term)),
-    );
-  }, [users, q]);
+        .some((v) => String(v).toLowerCase().includes(term));
+    });
+  }, [users, q, fRole, fStatus, fBio]);
+
+  const roleOpts = useMemo(
+    () => Array.from(new Set(users.map((u) => u.user_type).filter(Boolean))).sort(),
+    [users],
+  );
+  const statusOpts = useMemo(
+    () => Array.from(new Set(users.map((u) => u.status).filter(Boolean))).sort(),
+    [users],
+  );
+
+  const activeFilters =
+    (q.trim() ? 1 : 0) + [fRole, fStatus, fBio].filter((v) => v !== "all").length;
+
 
   const open = async (u: UserItem) => {
     setActive(u);
@@ -212,6 +232,38 @@ function AdminUsers() {
           </Button>
         </div>
       </div>
+
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3">
+        <span className="mr-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          Filters
+        </span>
+        <FilterSelect label="Roles" value={fRole} onChange={setFRole} options={roleOpts} />
+        <FilterSelect label="Statuses" value={fStatus} onChange={setFStatus} options={statusOpts} />
+        <FilterSelect
+          label="Biometrics"
+          value={fBio}
+          onChange={setFBio}
+          options={["enrolled", "missing"]}
+        />
+        {activeFilters > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setQ("");
+              setFRole("all");
+              setFStatus("all");
+              setFBio("all");
+            }}
+          >
+            <X className="mr-1 h-3.5 w-3.5" /> Clear ({activeFilters})
+          </Button>
+        )}
+        <span className="ml-auto text-xs text-muted-foreground">
+          {filtered.length} of {users.length}
+        </span>
+      </div>
+
 
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         <Table>
