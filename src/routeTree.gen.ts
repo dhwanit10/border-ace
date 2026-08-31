@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as OfficerRouteImport } from './routes/officer'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as OfficerIndexRouteImport } from './routes/officer.index'
+import { Route as OfficerHistoryRouteImport } from './routes/officer.history'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,16 +35,23 @@ const OfficerIndexRoute = OfficerIndexRouteImport.update({
   path: '/',
   getParentRoute: () => OfficerRoute,
 } as any)
+const OfficerHistoryRoute = OfficerHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => OfficerRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/officer': typeof OfficerRouteWithChildren
   '/verify': typeof VerifyRoute
+  '/officer/history': typeof OfficerHistoryRoute
   '/officer/': typeof OfficerIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/verify': typeof VerifyRoute
+  '/officer/history': typeof OfficerHistoryRoute
   '/officer': typeof OfficerIndexRoute
 }
 export interface FileRoutesById {
@@ -51,14 +59,16 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/officer': typeof OfficerRouteWithChildren
   '/verify': typeof VerifyRoute
+  '/officer/history': typeof OfficerHistoryRoute
   '/officer/': typeof OfficerIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/officer' | '/verify' | '/officer/'
+  fullPaths: '/' | '/officer' | '/verify' | '/officer/history' | '/officer/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/verify' | '/officer'
-  id: '__root__' | '/' | '/officer' | '/verify' | '/officer/'
+  to: '/' | '/verify' | '/officer/history' | '/officer'
+  id:
+    '__root__' | '/' | '/officer' | '/verify' | '/officer/history' | '/officer/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -97,14 +107,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OfficerIndexRouteImport
       parentRoute: typeof OfficerRoute
     }
+    '/officer/history': {
+      id: '/officer/history'
+      path: '/history'
+      fullPath: '/officer/history'
+      preLoaderRoute: typeof OfficerHistoryRouteImport
+      parentRoute: typeof OfficerRoute
+    }
   }
 }
 
 interface OfficerRouteChildren {
+  OfficerHistoryRoute: typeof OfficerHistoryRoute
   OfficerIndexRoute: typeof OfficerIndexRoute
 }
 
 const OfficerRouteChildren: OfficerRouteChildren = {
+  OfficerHistoryRoute: OfficerHistoryRoute,
   OfficerIndexRoute: OfficerIndexRoute,
 }
 
