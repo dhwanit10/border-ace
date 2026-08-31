@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as OfficerRouteImport } from './routes/officer'
 import { Route as VerifyRouteImport } from './routes/verify'
+import { Route as AdminHistoryRouteImport } from './routes/admin.history'
 import { Route as OfficerIndexRouteImport } from './routes/officer.index'
 import { Route as OfficerHistoryRouteImport } from './routes/officer.history'
 
@@ -36,6 +37,11 @@ const VerifyRoute = VerifyRouteImport.update({
   path: '/verify',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminHistoryRoute = AdminHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => AdminRoute,
+} as any)
 const OfficerIndexRoute = OfficerIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -49,47 +55,63 @@ const OfficerHistoryRoute = OfficerHistoryRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/officer': typeof OfficerRouteWithChildren
   '/verify': typeof VerifyRoute
+  '/admin/history': typeof AdminHistoryRoute
   '/officer/history': typeof OfficerHistoryRoute
   '/officer/': typeof OfficerIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/verify': typeof VerifyRoute
+  '/admin/history': typeof AdminHistoryRoute
   '/officer/history': typeof OfficerHistoryRoute
   '/officer': typeof OfficerIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/officer': typeof OfficerRouteWithChildren
   '/verify': typeof VerifyRoute
+  '/admin/history': typeof AdminHistoryRoute
   '/officer/history': typeof OfficerHistoryRoute
   '/officer/': typeof OfficerIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/admin' | '/officer' | '/verify' | '/officer/history' | '/officer/'
+    | '/'
+    | '/admin'
+    | '/officer'
+    | '/verify'
+    | '/admin/history'
+    | '/officer/history'
+    | '/officer/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/verify' | '/officer/history' | '/officer'
+  to:
+    | '/'
+    | '/admin'
+    | '/verify'
+    | '/admin/history'
+    | '/officer/history'
+    | '/officer'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/officer'
     | '/verify'
+    | '/admin/history'
     | '/officer/history'
     | '/officer/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   OfficerRoute: typeof OfficerRouteWithChildren
   VerifyRoute: typeof VerifyRoute
 }
@@ -124,6 +146,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/history': {
+      id: '/admin/history'
+      path: '/history'
+      fullPath: '/admin/history'
+      preLoaderRoute: typeof AdminHistoryRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/officer/': {
       id: '/officer/'
       path: '/'
@@ -141,6 +170,16 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminHistoryRoute: typeof AdminHistoryRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminHistoryRoute: AdminHistoryRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface OfficerRouteChildren {
   OfficerHistoryRoute: typeof OfficerHistoryRoute
   OfficerIndexRoute: typeof OfficerIndexRoute
@@ -156,7 +195,7 @@ const OfficerRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   OfficerRoute: OfficerRouteWithChildren,
   VerifyRoute: VerifyRoute,
 }
