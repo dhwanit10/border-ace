@@ -232,6 +232,38 @@ function AdminUsers() {
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3">
+        <span className="mr-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          Filters
+        </span>
+        <FilterSelect label="Roles" value={fRole} onChange={setFRole} options={roleOpts} />
+        <FilterSelect label="Statuses" value={fStatus} onChange={setFStatus} options={statusOpts} />
+        <FilterSelect
+          label="Biometrics"
+          value={fBio}
+          onChange={setFBio}
+          options={["enrolled", "missing"]}
+        />
+        {activeFilters > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setQ("");
+              setFRole("all");
+              setFStatus("all");
+              setFBio("all");
+            }}
+          >
+            <X className="mr-1 h-3.5 w-3.5" /> Clear ({activeFilters})
+          </Button>
+        )}
+        <span className="ml-auto text-xs text-muted-foreground">
+          {filtered.length} of {users.length}
+        </span>
+      </div>
+
+
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         <Table>
           <TableHeader>
