@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OfficerRouteImport } from './routes/officer'
 import { Route as VerifyRouteImport } from './routes/verify'
+import { Route as OfficerIndexRouteImport } from './routes/officer.index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,34 +29,41 @@ const VerifyRoute = VerifyRouteImport.update({
   path: '/verify',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OfficerIndexRoute = OfficerIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => OfficerRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/officer': typeof OfficerRoute
+  '/officer': typeof OfficerRouteWithChildren
   '/verify': typeof VerifyRoute
+  '/officer/': typeof OfficerIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/officer': typeof OfficerRoute
   '/verify': typeof VerifyRoute
+  '/officer': typeof OfficerIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/officer': typeof OfficerRoute
+  '/officer': typeof OfficerRouteWithChildren
   '/verify': typeof VerifyRoute
+  '/officer/': typeof OfficerIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/officer' | '/verify'
+  fullPaths: '/' | '/officer' | '/verify' | '/officer/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/officer' | '/verify'
-  id: '__root__' | '/' | '/officer' | '/verify'
+  to: '/' | '/verify' | '/officer'
+  id: '__root__' | '/' | '/officer' | '/verify' | '/officer/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  OfficerRoute: typeof OfficerRoute
+  OfficerRoute: typeof OfficerRouteWithChildren
   VerifyRoute: typeof VerifyRoute
 }
 
@@ -82,12 +90,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/officer/': {
+      id: '/officer/'
+      path: '/'
+      fullPath: '/officer/'
+      preLoaderRoute: typeof OfficerIndexRouteImport
+      parentRoute: typeof OfficerRoute
+    }
   }
 }
 
+interface OfficerRouteChildren {
+  OfficerIndexRoute: typeof OfficerIndexRoute
+}
+
+const OfficerRouteChildren: OfficerRouteChildren = {
+  OfficerIndexRoute: OfficerIndexRoute,
+}
+
+const OfficerRouteWithChildren =
+  OfficerRoute._addFileChildren(OfficerRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  OfficerRoute: OfficerRoute,
+  OfficerRoute: OfficerRouteWithChildren,
   VerifyRoute: VerifyRoute,
 }
 export const routeTree = rootRouteImport
