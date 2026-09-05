@@ -15,6 +15,7 @@ import { Route as OfficerRouteImport } from './routes/officer'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminHistoryRouteImport } from './routes/admin.history'
+import { Route as AdminRegisterDocRouteImport } from './routes/admin.register-doc'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as OfficerIndexRouteImport } from './routes/officer.index'
 import { Route as OfficerHistoryRouteImport } from './routes/officer.history'
@@ -49,6 +50,11 @@ const AdminHistoryRoute = AdminHistoryRouteImport.update({
   path: '/history',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminRegisterDocRoute = AdminRegisterDocRouteImport.update({
+  id: '/register-doc',
+  path: '/register-doc',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/officer': typeof OfficerRouteWithChildren
   '/verify': typeof VerifyRoute
   '/admin/history': typeof AdminHistoryRoute
+  '/admin/register-doc': typeof AdminRegisterDocRoute
   '/admin/users': typeof AdminUsersRoute
   '/officer/history': typeof OfficerHistoryRoute
   '/admin/': typeof AdminIndexRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/verify': typeof VerifyRoute
   '/admin/history': typeof AdminHistoryRoute
+  '/admin/register-doc': typeof AdminRegisterDocRoute
   '/admin/users': typeof AdminUsersRoute
   '/officer/history': typeof OfficerHistoryRoute
   '/admin': typeof AdminIndexRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/officer': typeof OfficerRouteWithChildren
   '/verify': typeof VerifyRoute
   '/admin/history': typeof AdminHistoryRoute
+  '/admin/register-doc': typeof AdminRegisterDocRoute
   '/admin/users': typeof AdminUsersRoute
   '/officer/history': typeof OfficerHistoryRoute
   '/admin/': typeof AdminIndexRoute
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/officer'
     | '/verify'
     | '/admin/history'
+    | '/admin/register-doc'
     | '/admin/users'
     | '/officer/history'
     | '/admin/'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
     | '/'
     | '/verify'
     | '/admin/history'
+    | '/admin/register-doc'
     | '/admin/users'
     | '/officer/history'
     | '/admin'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
     | '/officer'
     | '/verify'
     | '/admin/history'
+    | '/admin/register-doc'
     | '/admin/users'
     | '/officer/history'
     | '/admin/'
@@ -182,6 +194,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminHistoryRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/register-doc': {
+      id: '/admin/register-doc'
+      path: '/register-doc'
+      fullPath: '/admin/register-doc'
+      preLoaderRoute: typeof AdminRegisterDocRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/users': {
       id: '/admin/users'
       path: '/users'
@@ -208,12 +227,14 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminHistoryRoute: typeof AdminHistoryRoute
+  AdminRegisterDocRoute: typeof AdminRegisterDocRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminHistoryRoute: AdminHistoryRoute,
+  AdminRegisterDocRoute: AdminRegisterDocRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
