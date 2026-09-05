@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as OfficerRouteImport } from './routes/officer'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminCheckChainRouteImport } from './routes/admin.check-chain'
 import { Route as AdminHistoryRouteImport } from './routes/admin.history'
 import { Route as AdminRegisterDocRouteImport } from './routes/admin.register-doc'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
@@ -43,6 +44,11 @@ const VerifyRoute = VerifyRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCheckChainRoute = AdminCheckChainRouteImport.update({
+  id: '/check-chain',
+  path: '/check-chain',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminHistoryRoute = AdminHistoryRouteImport.update({
@@ -76,6 +82,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/officer': typeof OfficerRouteWithChildren
   '/verify': typeof VerifyRoute
+  '/admin/check-chain': typeof AdminCheckChainRoute
   '/admin/history': typeof AdminHistoryRoute
   '/admin/register-doc': typeof AdminRegisterDocRoute
   '/admin/users': typeof AdminUsersRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/verify': typeof VerifyRoute
+  '/admin/check-chain': typeof AdminCheckChainRoute
   '/admin/history': typeof AdminHistoryRoute
   '/admin/register-doc': typeof AdminRegisterDocRoute
   '/admin/users': typeof AdminUsersRoute
@@ -99,6 +107,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/officer': typeof OfficerRouteWithChildren
   '/verify': typeof VerifyRoute
+  '/admin/check-chain': typeof AdminCheckChainRoute
   '/admin/history': typeof AdminHistoryRoute
   '/admin/register-doc': typeof AdminRegisterDocRoute
   '/admin/users': typeof AdminUsersRoute
@@ -113,6 +122,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/officer'
     | '/verify'
+    | '/admin/check-chain'
     | '/admin/history'
     | '/admin/register-doc'
     | '/admin/users'
@@ -123,6 +133,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/verify'
+    | '/admin/check-chain'
     | '/admin/history'
     | '/admin/register-doc'
     | '/admin/users'
@@ -135,6 +146,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/officer'
     | '/verify'
+    | '/admin/check-chain'
     | '/admin/history'
     | '/admin/register-doc'
     | '/admin/users'
@@ -187,6 +199,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/check-chain': {
+      id: '/admin/check-chain'
+      path: '/check-chain'
+      fullPath: '/admin/check-chain'
+      preLoaderRoute: typeof AdminCheckChainRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/history': {
       id: '/admin/history'
       path: '/history'
@@ -226,6 +245,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminCheckChainRoute: typeof AdminCheckChainRoute
   AdminHistoryRoute: typeof AdminHistoryRoute
   AdminRegisterDocRoute: typeof AdminRegisterDocRoute
   AdminUsersRoute: typeof AdminUsersRoute
@@ -233,6 +253,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminCheckChainRoute: AdminCheckChainRoute,
   AdminHistoryRoute: AdminHistoryRoute,
   AdminRegisterDocRoute: AdminRegisterDocRoute,
   AdminUsersRoute: AdminUsersRoute,
