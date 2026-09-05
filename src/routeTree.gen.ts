@@ -14,9 +14,12 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as OfficerRouteImport } from './routes/officer'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminCheckChainRouteImport } from './routes/admin.check-chain'
 import { Route as AdminHistoryRouteImport } from './routes/admin.history'
+import { Route as AdminRegisterDocRouteImport } from './routes/admin.register-doc'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as OfficerIndexRouteImport } from './routes/officer.index'
+import { Route as OfficerCheckChainRouteImport } from './routes/officer.check-chain'
 import { Route as OfficerHistoryRouteImport } from './routes/officer.history'
 
 const IndexRoute = IndexRouteImport.update({
@@ -44,9 +47,19 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCheckChainRoute = AdminCheckChainRouteImport.update({
+  id: '/check-chain',
+  path: '/check-chain',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminHistoryRoute = AdminHistoryRouteImport.update({
   id: '/history',
   path: '/history',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRegisterDocRoute = AdminRegisterDocRouteImport.update({
+  id: '/register-doc',
+  path: '/register-doc',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
@@ -57,6 +70,11 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
 const OfficerIndexRoute = OfficerIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => OfficerRoute,
+} as any)
+const OfficerCheckChainRoute = OfficerCheckChainRouteImport.update({
+  id: '/check-chain',
+  path: '/check-chain',
   getParentRoute: () => OfficerRoute,
 } as any)
 const OfficerHistoryRoute = OfficerHistoryRouteImport.update({
@@ -70,8 +88,11 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/officer': typeof OfficerRouteWithChildren
   '/verify': typeof VerifyRoute
+  '/admin/check-chain': typeof AdminCheckChainRoute
   '/admin/history': typeof AdminHistoryRoute
+  '/admin/register-doc': typeof AdminRegisterDocRoute
   '/admin/users': typeof AdminUsersRoute
+  '/officer/check-chain': typeof OfficerCheckChainRoute
   '/officer/history': typeof OfficerHistoryRoute
   '/admin/': typeof AdminIndexRoute
   '/officer/': typeof OfficerIndexRoute
@@ -79,8 +100,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/verify': typeof VerifyRoute
+  '/admin/check-chain': typeof AdminCheckChainRoute
   '/admin/history': typeof AdminHistoryRoute
+  '/admin/register-doc': typeof AdminRegisterDocRoute
   '/admin/users': typeof AdminUsersRoute
+  '/officer/check-chain': typeof OfficerCheckChainRoute
   '/officer/history': typeof OfficerHistoryRoute
   '/admin': typeof AdminIndexRoute
   '/officer': typeof OfficerIndexRoute
@@ -91,8 +115,11 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/officer': typeof OfficerRouteWithChildren
   '/verify': typeof VerifyRoute
+  '/admin/check-chain': typeof AdminCheckChainRoute
   '/admin/history': typeof AdminHistoryRoute
+  '/admin/register-doc': typeof AdminRegisterDocRoute
   '/admin/users': typeof AdminUsersRoute
+  '/officer/check-chain': typeof OfficerCheckChainRoute
   '/officer/history': typeof OfficerHistoryRoute
   '/admin/': typeof AdminIndexRoute
   '/officer/': typeof OfficerIndexRoute
@@ -104,8 +131,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/officer'
     | '/verify'
+    | '/admin/check-chain'
     | '/admin/history'
+    | '/admin/register-doc'
     | '/admin/users'
+    | '/officer/check-chain'
     | '/officer/history'
     | '/admin/'
     | '/officer/'
@@ -113,8 +143,11 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/verify'
+    | '/admin/check-chain'
     | '/admin/history'
+    | '/admin/register-doc'
     | '/admin/users'
+    | '/officer/check-chain'
     | '/officer/history'
     | '/admin'
     | '/officer'
@@ -124,8 +157,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/officer'
     | '/verify'
+    | '/admin/check-chain'
     | '/admin/history'
+    | '/admin/register-doc'
     | '/admin/users'
+    | '/officer/check-chain'
     | '/officer/history'
     | '/admin/'
     | '/officer/'
@@ -175,11 +211,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/check-chain': {
+      id: '/admin/check-chain'
+      path: '/check-chain'
+      fullPath: '/admin/check-chain'
+      preLoaderRoute: typeof AdminCheckChainRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/history': {
       id: '/admin/history'
       path: '/history'
       fullPath: '/admin/history'
       preLoaderRoute: typeof AdminHistoryRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/register-doc': {
+      id: '/admin/register-doc'
+      path: '/register-doc'
+      fullPath: '/admin/register-doc'
+      preLoaderRoute: typeof AdminRegisterDocRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/users': {
@@ -196,6 +246,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OfficerIndexRouteImport
       parentRoute: typeof OfficerRoute
     }
+    '/officer/check-chain': {
+      id: '/officer/check-chain'
+      path: '/check-chain'
+      fullPath: '/officer/check-chain'
+      preLoaderRoute: typeof OfficerCheckChainRouteImport
+      parentRoute: typeof OfficerRoute
+    }
     '/officer/history': {
       id: '/officer/history'
       path: '/history'
@@ -207,13 +264,17 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminCheckChainRoute: typeof AdminCheckChainRoute
   AdminHistoryRoute: typeof AdminHistoryRoute
+  AdminRegisterDocRoute: typeof AdminRegisterDocRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminCheckChainRoute: AdminCheckChainRoute,
   AdminHistoryRoute: AdminHistoryRoute,
+  AdminRegisterDocRoute: AdminRegisterDocRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
@@ -221,11 +282,13 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface OfficerRouteChildren {
+  OfficerCheckChainRoute: typeof OfficerCheckChainRoute
   OfficerHistoryRoute: typeof OfficerHistoryRoute
   OfficerIndexRoute: typeof OfficerIndexRoute
 }
 
 const OfficerRouteChildren: OfficerRouteChildren = {
+  OfficerCheckChainRoute: OfficerCheckChainRoute,
   OfficerHistoryRoute: OfficerHistoryRoute,
   OfficerIndexRoute: OfficerIndexRoute,
 }

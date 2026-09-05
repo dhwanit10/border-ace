@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { QrLink } from "@/components/blockchain";
 import { apiPostForm, apiPostJson, type ExtractedDoc } from "@/lib/api";
 
 export const Route = createFileRoute("/officer/")({
@@ -49,6 +50,9 @@ type VerifyResult = {
   mrz_validation: boolean;
   tampering_probability: number;
   status: string;
+  blockchain_verification?: boolean;
+  transaction_link?: string;
+  blockchain_face_score?: number;
 };
 
 const FIELDS: Array<{ key: keyof ExtractedDoc; label: string; type?: string }> = [
@@ -384,7 +388,25 @@ function OfficerCase() {
                   tone={result.mrz_validation ? "good" : "warn"}
                 />
               )}
+              <Metric
+                label="Blockchain verification"
+                value={result.blockchain_verification ? "Verified" : "Not verified"}
+                tone={result.blockchain_verification ? "good" : "bad"}
+              />
+              {result.blockchain_face_score !== undefined && (
+                <Metric
+                  label="Blockchain face score"
+                  value={pct(result.blockchain_face_score)}
+                  tone={result.blockchain_face_score >= 0.6 ? "good" : "bad"}
+                />
+              )}
             </div>
+
+            {result.transaction_link && (
+              <div className="mt-6 max-w-xs">
+                <QrLink url={result.transaction_link} />
+              </div>
+            )}
           </div>
 
           <div className="rounded-2xl border border-border bg-card p-8">

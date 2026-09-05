@@ -13,6 +13,7 @@ function OfficerLayout() {
       nav={[
         { label: "Start Case", to: "/officer" },
         { label: "History", to: "/officer/history" },
+        { label: "Check on Chain", to: "/officer/check-chain" },
       ]}
     >
       <Outlet />

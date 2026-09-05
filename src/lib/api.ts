@@ -189,3 +189,32 @@ export type HistoryRow = {
   session: SystemSession;
   system: { id: number; system_name: string; status: string };
 };
+
+export type BlockchainDoc = {
+  blockchain_document_id: number;
+  doc_number: string;
+  canonical_string: string;
+  transaction_hash: string;
+  transaction_link: string;
+};
+
+export type BlockchainPayload = {
+  document_id: number;
+  doc_type: string;
+  doc_number: string;
+  full_name: string;
+  dob: string;
+  gender: string;
+  nationality: string;
+};
+
+export type BlockchainRegisterResult = {
+  success: boolean;
+  document_id: number;
+  canonical_string: string;
+  document_hash: string;
+  transaction_hash: string;
+  block_number: number;
+  contract_address: string;
+  verify_link: string;
+};
