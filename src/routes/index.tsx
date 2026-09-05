@@ -19,15 +19,15 @@ import { apiGet, apiPostJson, setAuth, type AuthState, type SystemItem } from "@
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Sign in — Sentinel Border Control" },
+      { title: "Sign in — Border Ace" },
       {
         name: "description",
-        content: "Officer and administrator sign-in for the Sentinel border document screening console.",
+        content: "Officer and administrator sign-in for Border Ace, the AI-based fake identity and document screening system.",
       },
-      { property: "og:title", content: "Sign in — Sentinel Border Control" },
+      { property: "og:title", content: "Sign in — Border Ace" },
       {
         property: "og:description",
-        content: "Secure sign-in to the border document screening and fraud detection console.",
+        content: "Secure sign-in to the AI-based fake identity and document screening console.",
       },
     ],
   }),
@@ -110,11 +110,11 @@ function LoginPage() {
             Restricted access
           </span>
           <h1 className="mt-6 font-[family-name:var(--font-display)] text-5xl font-bold leading-tight">
-            Sentinel Border Control
+            Border Ace
           </h1>
           <p className="mt-4 max-w-md text-base text-muted-foreground">
-            Document screening, biometric verification and fraud risk analysis for immigration
-            checkpoints. Every session is logged, attributed and auditable.
+            AI-Based Fake Identity & Document Screening System. Document screening, biometric
+            verification and fraud risk analysis for immigration checkpoints.
           </p>
           <div className="mt-8 grid grid-cols-3 gap-4">
             {[
