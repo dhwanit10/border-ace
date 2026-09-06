@@ -352,15 +352,15 @@ export function BlockchainRegistry() {
       const fd = new FormData();
       fd.append("file", file);
       const res = await apiPostForm<{
-        doc_id: number;
+        document_id: number;
         extracted_data: ExtractedDoc;
         ocr_confidence: number;
       }>("/api/v1/blockchain/upload-document", fd);
       const d = res.extracted_data;
-      setDocId(res.doc_id);
+      setDocId(res.document_id);
       setOcr(res.ocr_confidence);
       setPayload({
-        document_id: res.doc_id,
+        document_id: res.document_id,
         doc_type: (d.doc_type ?? "aadhar").toLowerCase(),
         doc_number: d.doc_number ?? "",
         full_name: d.full_name ?? "",
@@ -380,7 +380,7 @@ export function BlockchainRegistry() {
     setStep("registering");
     try {
       const res = await apiPostJson<BlockchainRegisterResult>("/api/v1/blockchain/register", {
-        document_id: Number(docId ?? payload.document_id),
+        document_id: payload.document_id,
         doc_type: String(payload.doc_type).toLowerCase(),
         doc_number: payload.doc_number,
         full_name: payload.full_name,
