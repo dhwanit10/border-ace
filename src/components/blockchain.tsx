@@ -380,9 +380,15 @@ export function BlockchainRegistry() {
     setStep("registering");
     try {
       const res = await apiPostJson<BlockchainRegisterResult>("/api/v1/blockchain/register", {
-        ...payload,
-        document_id: payload.document_id,
+        document_id: Number(docId ?? payload.document_id),
+        doc_type: String(payload.doc_type).toLowerCase(),
+        doc_number: payload.doc_number,
+        full_name: payload.full_name,
+        dob: payload.dob,
+        gender: payload.gender,
+        nationality: payload.nationality,
       });
+
       setRegistered(res);
       reset();
       load();
