@@ -149,22 +149,39 @@ export function BlockchainCheck() {
   const [payload, setPayload] = useState<BlockchainPayload>(emptyPayload);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<boolean | null>(null);
+  const [link, setLink] = useState<string>("");
+  const [docImg, setDocImg] = useState<string | null>(null);
+  const [imgLoading, setImgLoading] = useState(false);
 
   const submit = async () => {
     setBusy(true);
     setResult(null);
+    setLink("");
+    setDocImg(null);
     try {
-      const res = await apiPostJson<{ result: boolean }>("/api/v1/blockchain/check", {
+      const res = await apiPostJson<{
+        document_id?: number;
+        result: boolean;
+        transaction_link?: string;
+      }>("/api/v1/blockchain/check", {
         ...payload,
         document_id: 1,
       });
       setResult(!!res.result);
+      setLink(res.transaction_link ?? "");
+      if (res.result && res.document_id != null) {
+        setImgLoading(true);
+        const img = await fetchImageUrl(`/api/v1/blockchain/doc-image/${res.document_id}`);
+        setDocImg(img);
+        setImgLoading(false);
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Blockchain check failed");
     } finally {
       setBusy(false);
     }
   };
+
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
@@ -195,6 +212,8 @@ export function BlockchainCheck() {
             onClick={() => {
               setPayload(emptyPayload);
               setResult(null);
+              setLink("");
+              setDocImg(null);
             }}
           >
             Reset
@@ -216,12 +235,33 @@ export function BlockchainCheck() {
           </p>
         )}
         {!busy && result === true && (
-          <div className="mt-6 flex flex-col items-center gap-3 rounded-xl border border-success/40 bg-success/10 p-6 text-center">
-            <CheckCircle2 className="h-10 w-10 text-success" />
-            <p className="text-lg font-semibold text-success">Document verified on blockchain</p>
-            <p className="text-xs text-muted-foreground">
-              The submitted details match the registered on-chain record.
-            </p>
+          <div className="mt-6 space-y-4">
+            <div className="flex flex-col items-center gap-3 rounded-xl border border-success/40 bg-success/10 p-6 text-center">
+              <CheckCircle2 className="h-10 w-10 text-success" />
+              <p className="text-lg font-semibold text-success">Document verified on blockchain</p>
+              <p className="text-xs text-muted-foreground">
+                The submitted details match the registered on-chain record.
+              </p>
+            </div>
+            {link && <QrLink url={link} />}
+            <div>
+              <p className="mb-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+                Registered document image
+              </p>
+              {imgLoading ? (
+                <div className="flex h-40 items-center justify-center rounded-xl border border-border">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : docImg ? (
+                <img
+                  src={docImg}
+                  alt={`Registered document ${payload.doc_number}`}
+                  className="max-h-72 w-full rounded-xl border border-border object-contain"
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">Image unavailable.</p>
+              )}
+            </div>
           </div>
         )}
         {!busy && result === false && (
@@ -233,6 +273,7 @@ export function BlockchainCheck() {
             </p>
           </div>
         )}
+
       </div>
     </div>
   );
@@ -339,9 +380,15 @@ export function BlockchainRegistry() {
     setStep("registering");
     try {
       const res = await apiPostJson<BlockchainRegisterResult>("/api/v1/blockchain/register", {
-        ...payload,
-        document_id: payload.document_id,
+        document_id: Number(docId ?? payload.document_id),
+        doc_type: String(payload.doc_type).toLowerCase(),
+        doc_number: payload.doc_number,
+        full_name: payload.full_name,
+        dob: payload.dob,
+        gender: payload.gender,
+        nationality: payload.nationality,
       });
+
       setRegistered(res);
       reset();
       load();
