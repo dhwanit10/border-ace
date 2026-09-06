@@ -149,22 +149,39 @@ export function BlockchainCheck() {
   const [payload, setPayload] = useState<BlockchainPayload>(emptyPayload);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<boolean | null>(null);
+  const [link, setLink] = useState<string>("");
+  const [docImg, setDocImg] = useState<string | null>(null);
+  const [imgLoading, setImgLoading] = useState(false);
 
   const submit = async () => {
     setBusy(true);
     setResult(null);
+    setLink("");
+    setDocImg(null);
     try {
-      const res = await apiPostJson<{ result: boolean }>("/api/v1/blockchain/check", {
+      const res = await apiPostJson<{
+        document_id?: number;
+        result: boolean;
+        transaction_link?: string;
+      }>("/api/v1/blockchain/check", {
         ...payload,
         document_id: 1,
       });
       setResult(!!res.result);
+      setLink(res.transaction_link ?? "");
+      if (res.result && res.document_id != null) {
+        setImgLoading(true);
+        const img = await fetchImageUrl(`/api/v1/blockchain/doc-image/${res.document_id}`);
+        setDocImg(img);
+        setImgLoading(false);
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Blockchain check failed");
     } finally {
       setBusy(false);
     }
   };
+
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
