@@ -1,8 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  AlertTriangle,
   CheckCircle2,
+  CircleGauge,
+  FileCheck2,
   FilePlus2,
   FileScan,
+  Fingerprint,
   Loader2,
   ScanFace,
   ShieldAlert,
@@ -50,6 +54,7 @@ type VerifyResult = {
   mrz_validation: boolean;
   tampering_probability: number;
   status: string;
+  reasons?: string[];
   blockchain_verification?: boolean;
   transaction_link?: string;
   blockchain_face_score?: number;
@@ -69,25 +74,58 @@ const FIELDS: Array<{ key: keyof ExtractedDoc; label: string; type?: string }> =
 const pct = (v: number | null | undefined) =>
   v === null || v === undefined ? "—" : `${(v <= 1 ? v * 100 : v).toFixed(2)}%`;
 
+const asPercent = (value: number) => (value <= 1 ? value * 100 : value);
+
+function tamperingAssessment(value: number) {
+  const percentage = asPercent(value);
+  if (percentage <= 40) {
+    return {
+      label: "Low risk",
+      tone: "good" as const,
+      description: "No significant tampering indicators detected",
+    };
+  }
+  if (percentage <= 70) {
+    return {
+      label: "Medium risk",
+      tone: "warn" as const,
+      description: "Review the document evidence before deciding",
+    };
+  }
+  return {
+    label: "High risk",
+    tone: "bad" as const,
+    description: "Strong tampering indicators require attention",
+  };
+}
+
 function Metric({
   label,
   value,
+  detail,
+  icon: Icon,
   tone = "default",
 }: {
   label: string;
   value: string;
+  detail?: string;
+  icon: typeof CircleGauge;
   tone?: "default" | "good" | "bad" | "warn";
 }) {
   const tones = {
-    default: "border-border",
-    good: "border-success/40 bg-success/10",
-    bad: "border-destructive/40 bg-destructive/10",
-    warn: "border-warning/40 bg-warning/10",
+    default: "border-border text-foreground",
+    good: "border-success/40 text-success",
+    bad: "border-destructive/40 text-destructive",
+    warn: "border-warning/50 text-warning",
   } as const;
   return (
-    <div className={`rounded-xl border p-4 ${tones[tone]}`}>
-      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className="mt-1 text-2xl font-semibold">{value}</p>
+    <div className={`border-l-2 py-2 pl-4 ${tones[tone]}`}>
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <Icon className="h-4 w-4" />
+        <p className="text-xs font-medium uppercase">{label}</p>
+      </div>
+      <p className="mt-2 text-2xl font-semibold text-current">{value}</p>
+      {detail && <p className="mt-1 text-xs leading-5 text-muted-foreground">{detail}</p>}
     </div>
   );
 }
@@ -107,6 +145,7 @@ function OfficerCase() {
   const [busy, setBusy] = useState(false);
 
   const isPassport = (doc?.doc_type ?? "").toLowerCase() === "passport";
+  const tampering = result ? tamperingAssessment(result.tampering_probability) : null;
 
   const reset = () => {
     setStep("idle");
@@ -354,90 +393,165 @@ function OfficerCase() {
       )}
 
       {step === "result" && result && (
-        <div className="space-y-6">
-          <div className="rounded-2xl border border-border bg-card p-8">
-            <div className="flex items-center gap-3">
-              <ShieldAlert className="h-6 w-6 text-primary" />
-              <div>
-                <h2 className="text-xl font-semibold">Risk assessment</h2>
-                <p className="text-sm text-muted-foreground">
-                  Verification #{result.verification_id} · Risk #{result.risk_id}
-                </p>
+        <div className="space-y-5">
+          <header className="flex flex-col gap-5 rounded-md border border-border bg-card p-6 sm:flex-row sm:items-center">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <ShieldAlert className="h-6 w-6" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-3">
+                <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold">
+                  Verification assessment
+                </h2>
+                <Badge variant="outline" className="capitalize">
+                  {result.status.replace(/_/g, " ")}
+                </Badge>
               </div>
-              <Badge variant="outline" className="ml-auto capitalize">
-                {result.status}
-              </Badge>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Review every signal and recorded concern before making a decision.
+              </p>
             </div>
+            <dl className="grid shrink-0 grid-cols-2 gap-x-6 text-sm">
+              <div>
+                <dt className="text-xs text-muted-foreground">Verification</dt>
+                <dd className="mt-1 font-mono font-semibold">#{result.verification_id}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Risk record</dt>
+                <dd className="mt-1 font-mono font-semibold">#{result.risk_id}</dd>
+              </div>
+            </dl>
+          </header>
 
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.75fr)]">
+            <div className="space-y-5">
+              <section className="rounded-md border border-border bg-card p-6">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-base font-semibold">Verification signals</h3>
+                    <p className="mt-1 text-xs text-muted-foreground">Evidence returned by the screening checks</p>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className={
+                      tampering?.tone === "good"
+                        ? "border-success/40 bg-success/10 text-success"
+                        : tampering?.tone === "warn"
+                          ? "border-warning/50 bg-warning/10 text-warning"
+                          : "border-destructive/40 bg-destructive/10 text-destructive"
+                    }
+                  >
+                    {tampering?.label}
+                  </Badge>
+                </div>
+
+                <div className="mt-7 grid gap-x-8 gap-y-6 sm:grid-cols-2">
               <Metric
                 label="Face match"
                 value={pct(result.face_match_score)}
+                detail={result.face_match_score >= 0.6 ? "Identity similarity passed the threshold" : "Identity similarity is below the threshold"}
+                icon={Fingerprint}
                 tone={result.face_match_score >= 0.6 ? "good" : "bad"}
               />
-              <Metric label="OCR confidence" value={pct(result.ocr_confidence)} />
+              <Metric
+                label="OCR confidence"
+                value={pct(result.ocr_confidence)}
+                detail="Confidence in the extracted document fields"
+                icon={FileScan}
+              />
               <Metric
                 label="Tampering probability"
                 value={pct(result.tampering_probability)}
-                tone={result.tampering_probability > 50 ? "bad" : "good"}
+                detail={tampering?.description}
+                icon={CircleGauge}
+                tone={tampering?.tone}
               />
               {isPassport && (
                 <Metric
                   label="MRZ validation"
                   value={result.mrz_validation ? "Valid" : "Invalid"}
+                  detail="Passport machine-readable zone integrity"
+                  icon={FileCheck2}
                   tone={result.mrz_validation ? "good" : "warn"}
                 />
               )}
               <Metric
                 label="Blockchain verification"
                 value={result.blockchain_verification ? "Verified" : "Not verified"}
+                detail="Document record checked against the blockchain"
+                icon={CheckCircle2}
                 tone={result.blockchain_verification ? "good" : "bad"}
               />
               {result.blockchain_face_score !== undefined && (
                 <Metric
                   label="Blockchain face score"
                   value={pct(result.blockchain_face_score)}
+                  detail="Face similarity against the registered record"
+                  icon={ScanFace}
                   tone={result.blockchain_face_score >= 0.6 ? "good" : "bad"}
                 />
               )}
             </div>
+              </section>
 
-            {result.transaction_link && (
-              <div className="mt-6 max-w-xs">
-                <QrLink url={result.transaction_link} />
-              </div>
-            )}
-          </div>
-
-          <div className="rounded-2xl border border-border bg-card p-8">
-            <Label htmlFor="desc">Officer remarks (optional)</Label>
-            <Textarea
-              id="desc"
-              rows={3}
-              className="mt-2"
-              placeholder="Add context for this decision…"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Button disabled={busy} onClick={() => void decide("approved")}>
-                <CheckCircle2 className="mr-2 h-4 w-4" /> Approve
-              </Button>
-              <Button
-                variant="outline"
-                disabled={busy}
-                onClick={() => void decide("under_investigation")}
-              >
-                Under Investigation
-              </Button>
-              <Button
-                variant="destructive"
-                disabled={busy}
-                onClick={() => void decide("rejected")}
-              >
-                Reject
-              </Button>
+              {result.reasons && result.reasons.length > 0 && (
+                <section className="rounded-md border border-warning/50 bg-warning/10 p-6" aria-labelledby="review-reasons">
+                  <div className="flex gap-3">
+                    <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
+                    <div className="min-w-0">
+                      <h3 id="review-reasons" className="font-semibold">Reasons requiring review</h3>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        The verification service returned {result.reasons.length} {result.reasons.length === 1 ? "concern" : "concerns"}.
+                      </p>
+                      <ul className="mt-4 divide-y divide-warning/30 border-y border-warning/30">
+                        {result.reasons.map((reason, index) => (
+                          <li key={`${reason}-${index}`} className="flex gap-3 py-3 text-sm leading-6">
+                            <span className="font-mono text-xs font-semibold text-warning">{String(index + 1).padStart(2, "0")}</span>
+                            <span>{reason}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </section>
+              )}
             </div>
+
+            <aside className="space-y-5">
+              <section className="rounded-md border border-border bg-card p-6">
+                <h3 className="text-base font-semibold">Officer decision</h3>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  Record the final checkpoint outcome after reviewing all evidence.
+                </p>
+                <Label htmlFor="desc" className="mt-5 block">Remarks (optional)</Label>
+                <Textarea
+                  id="desc"
+                  rows={4}
+                  className="mt-2 resize-none"
+                  placeholder="Add context for this decision…"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+                <div className="mt-5 grid gap-2">
+                  <Button disabled={busy} onClick={() => void decide("approved")}>
+                    <CheckCircle2 className="h-4 w-4" /> Approve
+                  </Button>
+                  <Button variant="outline" disabled={busy} onClick={() => void decide("under_investigation")}>
+                    <ShieldAlert className="h-4 w-4" /> Under Investigation
+                  </Button>
+                  <Button variant="destructive" disabled={busy} onClick={() => void decide("rejected")}>
+                    <AlertTriangle className="h-4 w-4" /> Reject
+                  </Button>
+                </div>
+              </section>
+
+              {result.transaction_link && (
+                <section className="rounded-md border border-border bg-card p-6">
+                  <h3 className="mb-4 text-base font-semibold">Blockchain record</h3>
+                  <QrLink url={result.transaction_link} />
+                </section>
+              )}
+            </aside>
           </div>
         </div>
       )}
