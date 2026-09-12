@@ -14,6 +14,7 @@ function AdminLayout() {
         { label: "Systems", to: "/admin" },
         { label: "Users", to: "/admin/users" },
         { label: "History", to: "/admin/history" },
+        { label: "Reports", to: "/admin/reports" },
         { label: "Register Doc", to: "/admin/register-doc" },
         { label: "Check on Chain", to: "/admin/check-chain" },
       ]}
