@@ -110,7 +110,7 @@ function Metric({
   value: string;
   detail?: string | undefined;
   icon: typeof CircleGauge;
-  tone?: "default" | "good" | "bad" | "warn";
+  tone?: "default" | "good" | "bad" | "warn" | undefined;
 }) {
   const tones = {
     default: "border-border text-foreground",
