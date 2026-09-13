@@ -381,8 +381,11 @@ export function HistoryView({
                   <Field label="Face match score" value={pct(risk?.face_match_score)} />
                   <Field label="OCR confidence" value={pct(risk?.ocr_confidence)} />
                   <Field label="Tampering probability" value={pct(risk?.tampering_probability)} />
-                  {isPassport && (
-                    <Field label="MRZ validation" value={risk?.mrz_validation ? "Valid" : "Invalid"} />
+                  {risk?.validation_type && (
+                    <Field
+                      label={`${risk.validation_type.toUpperCase()} validation`}
+                      value={risk.document_specific_validation ? "Valid" : "Invalid"}
+                    />
                   )}
                   <Field
                     label="Database verification"

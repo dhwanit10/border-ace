@@ -360,7 +360,7 @@ function AdminReports() {
   );
 
   const radar = useMemo(() => {
-    const mrzOk = data.filter((r) => one(r)?.mrz_validation).length;
+    const mrzOk = data.filter((r) => one(r)?.document_specific_validation).length;
     const dbOk = data.filter((r) => one(r)?.database_verification).length;
     const n = data.length || 1;
     return [
