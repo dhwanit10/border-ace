@@ -51,7 +51,8 @@ type VerifyResult = {
   risk_id: number;
   face_match_score: number;
   ocr_confidence: number;
-  mrz_validation: boolean;
+  document_specific_validation: boolean;
+  validation_type: string;
   tampering_probability: number;
   status: string;
   reasons?: string[];
@@ -466,15 +467,13 @@ function OfficerCase() {
                 icon={CircleGauge}
                 tone={tampering?.tone}
               />
-              {isPassport && (
-                <Metric
-                  label="MRZ validation"
-                  value={result.mrz_validation ? "Valid" : "Invalid"}
-                  detail="Passport machine-readable zone integrity"
-                  icon={FileCheck2}
-                  tone={result.mrz_validation ? "good" : "warn"}
-                />
-              )}
+              <Metric
+                label={`${(result.validation_type ?? "document").toUpperCase()} validation`}
+                value={result.document_specific_validation ? "Valid" : "Invalid"}
+                detail="Document-specific integrity check"
+                icon={FileCheck2}
+                tone={result.document_specific_validation ? "good" : "warn"}
+              />
               <Metric
                 label="Blockchain verification"
                 value={result.blockchain_verification ? "Verified" : "Not verified"}

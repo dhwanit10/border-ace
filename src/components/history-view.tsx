@@ -381,8 +381,11 @@ export function HistoryView({
                   <Field label="Face match score" value={pct(risk?.face_match_score)} />
                   <Field label="OCR confidence" value={pct(risk?.ocr_confidence)} />
                   <Field label="Tampering probability" value={pct(risk?.tampering_probability)} />
-                  {isPassport && (
-                    <Field label="MRZ validation" value={risk?.mrz_validation ? "Valid" : "Invalid"} />
+                  {risk?.validation_type && (
+                    <Field
+                      label={`${risk.validation_type.toUpperCase()} validation`}
+                      value={risk.document_specific_validation ? "Valid" : "Invalid"}
+                    />
                   )}
                   <Field
                     label="Database verification"
@@ -392,6 +395,20 @@ export function HistoryView({
                   <div className="sm:col-span-3">
                     <Field label="Officer remarks" value={risk?.description} />
                   </div>
+                  {risk?.reasons && risk.reasons.length > 0 && (
+                    <div className="sm:col-span-3">
+                      <Field
+                        label="Reasons requiring review"
+                        value={
+                          <ul className="list-decimal space-y-1 pl-4">
+                            {risk.reasons.map((reason, i) => (
+                              <li key={i}>{reason}</li>
+                            ))}
+                          </ul>
+                        }
+                      />
+                    </div>
+                  )}
                 </div>
               </section>
 
