@@ -395,6 +395,20 @@ export function HistoryView({
                   <div className="sm:col-span-3">
                     <Field label="Officer remarks" value={risk?.description} />
                   </div>
+                  {risk?.reasons && risk.reasons.length > 0 && (
+                    <div className="sm:col-span-3">
+                      <Field
+                        label="Reasons requiring review"
+                        value={
+                          <ul className="list-decimal space-y-1 pl-4">
+                            {risk.reasons.map((reason, i) => (
+                              <li key={i}>{reason}</li>
+                            ))}
+                          </ul>
+                        }
+                      />
+                    </div>
+                  )}
                 </div>
               </section>
 
