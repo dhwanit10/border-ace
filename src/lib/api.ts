@@ -176,7 +176,9 @@ export type HistoryRow = {
   risks: Array<{
     id: number;
     ocr_confidence: number | null;
-    mrz_validation: boolean | null;
+    document_specific_validation: boolean | null;
+    validation_type: string | null;
+    reasons: string[] | null;
     tampering_probability: number | null;
     face_match_score: number | null;
     database_verification: boolean | null;
