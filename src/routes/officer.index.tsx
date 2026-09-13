@@ -108,7 +108,7 @@ function Metric({
 }: {
   label: string;
   value: string;
-  detail?: string;
+  detail?: string | undefined;
   icon: typeof CircleGauge;
   tone?: "default" | "good" | "bad" | "warn";
 }) {
