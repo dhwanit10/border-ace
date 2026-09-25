@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   CircleGauge,
   FileCheck2,
+  FileImage,
   FilePlus2,
   FileScan,
   Fingerprint,
@@ -11,6 +12,7 @@ import {
   ScanFace,
   ShieldAlert,
   Upload,
+  UserRound,
 } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -23,7 +25,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { QrLink } from "@/components/blockchain";
-import { apiPostForm, apiPostJson, type ExtractedDoc } from "@/lib/api";
+import { apiPostForm, apiPostJson, fetchImageUrl, type ExtractedDoc } from "@/lib/api";
 
 export const Route = createFileRoute("/officer/")({
   head: () => ({
@@ -131,6 +133,42 @@ function Metric({
   );
 }
 
+function EvidenceImage({
+  label,
+  src,
+  loading,
+  alt,
+  icon: Icon,
+  height = "h-48",
+}: {
+  label: string;
+  src: string | null;
+  loading: boolean;
+  alt: string;
+  icon: typeof FileImage;
+  height?: string;
+}) {
+  return (
+    <div className="overflow-hidden rounded-md border border-border bg-muted/30">
+      <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+        <Icon className="h-4 w-4 text-muted-foreground" />
+        <p className="text-xs font-medium uppercase text-muted-foreground">{label}</p>
+      </div>
+      {loading ? (
+        <div className={`flex ${height} items-center justify-center`}>
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+        </div>
+      ) : src ? (
+        <img src={src} alt={alt} className={`${height} w-full object-contain p-3`} />
+      ) : (
+        <div className={`flex ${height} items-center justify-center text-sm text-muted-foreground`}>
+          Image not available
+        </div>
+      )}
+    </div>
+  );
+}
+
 function OfficerCase() {
   const auth = useAuthState();
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -142,6 +180,10 @@ function OfficerCase() {
   const [ocrConfidence, setOcrConfidence] = useState<number | null>(null);
   const [doc, setDoc] = useState<ExtractedDoc | null>(null);
   const [result, setResult] = useState<VerifyResult | null>(null);
+  const [documentImage, setDocumentImage] = useState<string | null>(null);
+  const [personImage, setPersonImage] = useState<string | null>(null);
+  const [documentImageLoading, setDocumentImageLoading] = useState(false);
+  const [assessmentImagesLoading, setAssessmentImagesLoading] = useState(false);
   const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -155,6 +197,10 @@ function OfficerCase() {
     setDocId(null);
     setDoc(null);
     setResult(null);
+    setDocumentImage(null);
+    setPersonImage(null);
+    setDocumentImageLoading(false);
+    setAssessmentImagesLoading(false);
     setOcrConfidence(null);
     setDescription("");
   };
@@ -182,6 +228,10 @@ function OfficerCase() {
       setDoc(res.extracted_data);
       setOcrConfidence(res.ocr_confidence);
       setStep("extracted");
+      setDocumentImageLoading(true);
+      void fetchImageUrl(`/api/v1/documents/photo/${res.doc_id}`)
+        .then(setDocumentImage)
+        .finally(() => setDocumentImageLoading(false));
       toast.success("Document extracted");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "OCR failed");
@@ -207,6 +257,16 @@ function OfficerCase() {
       const res = await apiPostForm<VerifyResult>("/api/v1/workflow/verify-person", fd);
       setResult(res);
       setStep("result");
+      setAssessmentImagesLoading(true);
+      void Promise.all([
+        fetchImageUrl(`/api/v1/documents/photo/${docId}`),
+        fetchImageUrl(`/api/v1/documents/person-image/${docId}`),
+      ])
+        .then(([documentUrl, personUrl]) => {
+          setDocumentImage(documentUrl);
+          setPersonImage(personUrl);
+        })
+        .finally(() => setAssessmentImagesLoading(false));
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Verification failed");
       setStep("face");
@@ -342,6 +402,14 @@ function OfficerCase() {
           </div>
 
           <div className="space-y-4">
+            <EvidenceImage
+              label="Document image"
+              src={documentImage}
+              loading={documentImageLoading}
+              alt="Uploaded identity document"
+              icon={FileImage}
+              height="h-64"
+            />
             <div className="rounded-2xl border border-border bg-card p-6">
               <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
                 OCR confidence
@@ -514,33 +582,59 @@ function OfficerCase() {
                   </div>
                 </section>
               )}
+
+              <section className="rounded-md border border-border bg-card p-6">
+                <div className="flex flex-col gap-1">
+                  <h3 className="text-base font-semibold">Officer decision</h3>
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    Record the final checkpoint outcome after reviewing all evidence.
+                  </p>
+                </div>
+                <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+                  <div>
+                    <Label htmlFor="desc">Remarks (optional)</Label>
+                    <Textarea
+                      id="desc"
+                      rows={3}
+                      className="mt-2 resize-none"
+                      placeholder="Add context for this decision…"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-2 lg:justify-end">
+                    <Button disabled={busy} onClick={() => void decide("approved")}>
+                      <CheckCircle2 className="h-4 w-4" /> Approve
+                    </Button>
+                    <Button variant="outline" disabled={busy} onClick={() => void decide("under_investigation")}>
+                      <ShieldAlert className="h-4 w-4" /> Under Investigation
+                    </Button>
+                    <Button variant="destructive" disabled={busy} onClick={() => void decide("rejected")}>
+                      <AlertTriangle className="h-4 w-4" /> Reject
+                    </Button>
+                  </div>
+                </div>
+              </section>
             </div>
 
             <aside className="space-y-5">
               <section className="rounded-md border border-border bg-card p-6">
-                <h3 className="text-base font-semibold">Officer decision</h3>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  Record the final checkpoint outcome after reviewing all evidence.
-                </p>
-                <Label htmlFor="desc" className="mt-5 block">Remarks (optional)</Label>
-                <Textarea
-                  id="desc"
-                  rows={4}
-                  className="mt-2 resize-none"
-                  placeholder="Add context for this decision…"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-                <div className="mt-5 grid gap-2">
-                  <Button disabled={busy} onClick={() => void decide("approved")}>
-                    <CheckCircle2 className="h-4 w-4" /> Approve
-                  </Button>
-                  <Button variant="outline" disabled={busy} onClick={() => void decide("under_investigation")}>
-                    <ShieldAlert className="h-4 w-4" /> Under Investigation
-                  </Button>
-                  <Button variant="destructive" disabled={busy} onClick={() => void decide("rejected")}>
-                    <AlertTriangle className="h-4 w-4" /> Reject
-                  </Button>
+                <h3 className="mb-4 text-base font-semibold">Captured evidence</h3>
+                <div className="space-y-4">
+                  <EvidenceImage
+                    label="Document image"
+                    src={documentImage}
+                    loading={assessmentImagesLoading}
+                    alt="Identity document used for verification"
+                    icon={FileImage}
+                  />
+                  <EvidenceImage
+                    label="Person image"
+                    src={personImage}
+                    loading={assessmentImagesLoading}
+                    alt="Person captured during verification"
+                    icon={UserRound}
+                  />
                 </div>
               </section>
 
