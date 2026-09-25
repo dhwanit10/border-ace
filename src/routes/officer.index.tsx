@@ -590,7 +590,7 @@ function OfficerCase() {
                     Record the final checkpoint outcome after reviewing all evidence.
                   </p>
                 </div>
-                <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+                <div className="mt-5 flex flex-col gap-4">
                   <div>
                     <Label htmlFor="desc">Remarks (optional)</Label>
                     <Textarea
@@ -602,7 +602,7 @@ function OfficerCase() {
                       onChange={(e) => setDescription(e.target.value)}
                     />
                   </div>
-                  <div className="flex flex-wrap gap-2 lg:justify-end">
+                  <div className="flex flex-wrap gap-2 lg:justify-start">
                     <Button disabled={busy} onClick={() => void decide("approved")}>
                       <CheckCircle2 className="h-4 w-4" /> Approve
                     </Button>
